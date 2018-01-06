@@ -122,7 +122,6 @@ void Emulator::ntrPlatformReadCommand(std::uint64_t cmd, void *dest, std::size_t
         }
         break;
     case ncgc::NTRState::Raw:
-        std::cout << std::hex << cmd << std::dec << std::endl;
         switch (cmd & 0xF0) {
         case 0x10:
             std::memcpy(dest, &_chipid, std::min<std::size_t>(dest_size, 4));
