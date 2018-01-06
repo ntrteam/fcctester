@@ -103,12 +103,18 @@ void Emulator::ntrPlatformReadCommand(std::uint64_t cmd, void *dest, std::size_t
         return;
     }
 
+    if (!dest) {
+        return;
+    }
+
     switch (_card->state()) {
     case ncgc::NTRState::Preinit:
         switch (cmd & 0xFF) {
         case 0x9F:
         case 0x00:
             // response unused by ncgc
+        default:
+            std::memset(dest, 0xFF, dest_size);
             break;
         case 0x90:
             std::memcpy(dest, &_chipid, std::min<std::size_t>(dest_size, 4));
@@ -121,6 +127,9 @@ void Emulator::ntrPlatformReadCommand(std::uint64_t cmd, void *dest, std::size_t
         case 0x10:
             std::memcpy(dest, &_chipid, std::min<std::size_t>(dest_size, 4));
             break;
+        default:
+            std::memset(dest, 0xFF, dest_size);
+            break;
         }
         break;
     case ncgc::NTRState::Key1:
@@ -129,9 +138,13 @@ void Emulator::ntrPlatformReadCommand(std::uint64_t cmd, void *dest, std::size_t
         case 0xB8:
             std::memcpy(dest, &_chipid, std::min<std::size_t>(dest_size, 4));
             break;
+        default:
+            std::memset(dest, 0xFF, dest_size);
+            break;
         }
         break;
     default:
+        std::memset(dest, 0xFF, dest_size);
         std::cout << "Invalid state encountered in Emulator::ntrPlatformReadCommand" << std::endl;
         break;
     }
