@@ -22,7 +22,7 @@ void platformSeedKey2(ncgc::c::ncgc_ncard_t *card, std::uint64_t x, std::uint64_
 
 ncgc::c::ncgc_err_t platformReset(ncgc::c::ncgc_ncard_t *card) {
     Emulator *e = ncgcCardToEmulator(card);
-    e->reset();
+    e->platformReset();
     return ncgc::c::NCGC_EOK;
 }
 
@@ -30,13 +30,13 @@ ncgc::c::ncgc_err_t platformSendReadCommand(ncgc::c::ncgc_ncard_t *card, uint64_
     Emulator *e = ncgcCardToEmulator(card);
     if (bufsz < readsz || !buf) {
         std::uint8_t *fullBuf = new uint8_t[readsz];
-        e->ntrReadCommand(cmd, fullBuf, readsz, flags);
+        e->ntrPlatformReadCommand(cmd, fullBuf, readsz, flags);
         if (buf && bufsz) {
             memcpy(buf, fullBuf, bufsz);
         }
         delete[] fullBuf;
     } else {
-        e->ntrReadCommand(cmd, buf, readsz, flags);
+        e->ntrPlatformReadCommand(cmd, buf, readsz, flags);
     }
     return ncgc::c::NCGC_EOK;
 }
@@ -49,7 +49,10 @@ ncgc::c::ncgc_err_t platformSendWriteCommand(ncgc::c::ncgc_ncard_t *card, uint64
 
 ncgc::c::ncgc_err_t platformSpiTransact(ncgc::c::ncgc_ncard_t *card, std::uint8_t bin, std::uint8_t *bout, bool last) {
     Emulator *e = ncgcCardToEmulator(card);
-    *bout = e->spiTransact(bin, last);
+    std::uint8_t out = e->spiTransact(bin, last);
+    if (bout) {
+        *bout = out;
+    }
     return ncgc::c::NCGC_EOK;
 }
 }
@@ -91,7 +94,8 @@ void Emulator::init() {
 }
 
 void Emulator::platformReset() {
-    _card->state(ncgc::NTRState::Raw);
+    _card->state(ncgc::NTRState::Preinit);
+    reset();
 }
 
 void Emulator::ntrPlatformReadCommand(std::uint64_t cmd, void *dest, std::size_t dest_size, ncgc::NTRFlags flags) {
@@ -100,7 +104,7 @@ void Emulator::ntrPlatformReadCommand(std::uint64_t cmd, void *dest, std::size_t
     }
 
     switch (_card->state()) {
-    case ncgc::NTRState::Raw:
+    case ncgc::NTRState::Preinit:
         switch (cmd & 0xFF) {
         case 0x9F:
         case 0x00:
@@ -111,13 +115,15 @@ void Emulator::ntrPlatformReadCommand(std::uint64_t cmd, void *dest, std::size_t
             break;
         }
         break;
-    case ncgc::NTRState::Key1:
+    case ncgc::NTRState::Raw:
+        std::cout << std::hex << cmd << std::dec << std::endl;
         switch (cmd & 0xF0) {
         case 0x10:
             std::memcpy(dest, &_chipid, std::min<std::size_t>(dest_size, 4));
             break;
         }
         break;
+    case ncgc::NTRState::Key1:
     case ncgc::NTRState::Key2:
         switch (cmd & 0xFF) {
         case 0xB8:
