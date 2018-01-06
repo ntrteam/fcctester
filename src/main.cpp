@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <string>
 #include <iostream>
 #include <cstdint>
 
@@ -5,6 +7,13 @@
 #include "flashcart_core/platform.h"
 
 #include "emulator.h"
+
+namespace {
+std::string stringToLower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    return s;
+}
+}
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -14,7 +23,8 @@ int main(int argc, char *argv[]) {
 
     flashcart_core::Flashcart *fc = nullptr;
     for (flashcart_core::Flashcart *&tfc : *flashcart_core::flashcart_list) {
-        if (std::string(tfc->getName()).find(argv[1]) != std::string::npos) {
+        // i'm sure we're not going to have i18n issues with flashcart names, right??!
+        if (stringToLower(std::string(tfc->getName())).find(stringToLower(argv[1])) != std::string::npos) {
             fc = tfc;
             break;
         }
@@ -27,7 +37,7 @@ int main(int argc, char *argv[]) {
     const char *emuName = argc >= 3 ? argv[2] : fc->getName();
     Emulator *emu = nullptr;
     for (Emulator *&temu : *Emulator::list) {
-        if (std::string(temu->name()).find(emuName) != std::string::npos) {
+        if (stringToLower(std::string(temu->name())).find(stringToLower(emuName)) != std::string::npos) {
             emu = temu;
             break;
         }
