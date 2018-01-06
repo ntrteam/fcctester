@@ -29,10 +29,10 @@ namespace flashcart_core {
 namespace platform {
 void showProgress(std::uint32_t current, std::uint32_t total, const char* status_string) {
     static const char *last_status = nullptr;
-    static std::uint32_t last_percent = 0xFAFAFAFAu;
+    static int last_percent = 0xFAFAFAFAu;
 
-    const std::uint32_t cur_percent = current*100/total;
-    if (last_status != status_string || last_percent > cur_percent + 5 || last_percent < cur_percent - 5 || cur_percent >= 99) {
+    const int cur_percent = current*100/total;
+    if (last_status != status_string || std::abs(last_percent - cur_percent) > 10 || cur_percent >= 100) {
         std::cout << "Progress: " << status_string << " " << cur_percent << "%" << std::endl;
         last_status = status_string;
         last_percent = cur_percent;
