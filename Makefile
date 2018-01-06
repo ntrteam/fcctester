@@ -2,6 +2,7 @@ CXXFLAGS	:=	-Wall -Wextra -pedantic -std=c++14 \
 				-Wno-unused-result -Wno-unused-parameter \
 				-O3 -g \
 				-Ilibncgc/include -DNCGC_PLATFORM_TEST \
+				-fsanitize=undefined \
 				$(CXXFLAGS)
 
 LDFLAGS		:=	-Llibncgc/out/test -lncgc
