@@ -86,6 +86,8 @@ void Emulator::init() {
         rpl.hw_key2 = true;
         rpl.ignore_key1 = true;
         rpl.data.ptr_data = this;
+        // flashcart core expects an init-ed NTRCard
+        _card->init();
     }
 
     if (!_flash) {
