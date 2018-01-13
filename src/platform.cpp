@@ -40,6 +40,8 @@ void showProgress(std::uint32_t current, std::uint32_t total, const char* status
 }
 
 int logMessage(log_priority priority, const char *fmt, ...) {
+    // TODO FIXME add command line option for log level
+    if (priority < LOG_INFO) { return 0; }
     std::cout << "flashcart_core [" << priorityString(priority) << "] ";
     std::va_list args;
     va_start(args, fmt);
