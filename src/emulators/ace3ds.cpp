@@ -66,15 +66,13 @@ public:
                 break;
             case 3: // SPI Read
                 if (!spiLatchArg(in)) {
-                    if (_spiArg + _spiCounter - 3 < _flash_size) {
-                        ret = _flash[_spiArg + _spiCounter - 3];
-                    }
+                    ret = _flash[(_spiArg + _spiCounter - 3) & 0x1FFFFF];
                 }
                 break;
             case 2: // SPI Write
                 if (!spiLatchArg(in)) {
-                    std::size_t addr = (_spiArg & 0xFFFF00) | ((_spiArg + _spiCounter - 3) & 0xFF);
-                    if (addr < _flash_size && _writeEnabled) {
+                    std::size_t addr = (_spiArg & 0x1FFF00) | ((_spiArg + _spiCounter - 3) & 0xFF);
+                    if (_writeEnabled) {
                         _flash[addr] &= in;
                     }
                 }
@@ -84,9 +82,8 @@ public:
                 break;
             case 0x20: // SPI sector erase
                 spiLatchArg(in);
-                _spiArg &= 0xFFF000;
-                if (_spiCounter == 2 && _spiArg < _flash_size && _writeEnabled) {
-                    std::memset(_flash + _spiArg, 0xFF, std::min<std::size_t>(0x1000, _flash_size - _spiArg));
+                if (_spiCounter == 2 && _writeEnabled) {
+                    std::memset(_flash + (_spiArg & 0x1FF000), 0xFF, 0x1000);
                     _writeEnabled = false;
                 }
                 break;
