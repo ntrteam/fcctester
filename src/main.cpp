@@ -53,25 +53,39 @@ bool readTest(flashcart_core::Flashcart *fc, Emulator *emu, std::uint32_t addr, 
 
 bool writeTest(flashcart_core::Flashcart *fc, Emulator *emu, std::uint32_t addr, std::uint32_t size) {
     std::uint8_t *const flash = emu->flashContents();
+    const std::uint32_t flashSz = fc->getMaxLength();
+    std::uint8_t *const old_flash = new std::uint8_t[flashSz];
     std::uint8_t *const buf = new std::uint8_t[size];
+    std::memcpy(old_flash, flash, flashSz);
     memrand(buf, size);
+    std::memcpy(old_flash + addr, buf, size);
 
     std::cout << "Write to " << addr << " of size " << size << std::endl;
 
+    bool success = true;
+    
     if (!fc->writeFlash(addr, size, buf)) {
         std::cout << "Flashcart write failed." << std::endl;
-        delete[] buf;
-        return false;
+        success = false;
+        goto end;
     }
 
     if (std::memcmp(buf, flash + addr, size)) {
         std::cout << "Write result wrong" << std::endl;
-        delete[] buf;
-        return false;
+        success = false;
+        goto end;
+    }
+    
+    if (std::memcmp(old_flash, flash, flashSz)) {
+        std::cout << "Write seems to have destroyed data outside of written area" << std::endl;
+        success = false;
+        goto end;
     }
 
+end:
+    delete[] old_flash;
     delete[] buf;
-    return true;
+    return success;
 }
 }
 
