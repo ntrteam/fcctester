@@ -57,7 +57,7 @@ ncgc::c::ncgc_err_t platformSpiTransact(ncgc::c::ncgc_ncard_t *card, std::uint8_
 }
 }
 
-std::vector<Emulator *> *Emulator::list = new std::vector<Emulator *>();
+std::vector<Emulator *> *Emulator::list = nullptr;
 
 Emulator::Emulator(std::string name, std::size_t flash_size, std::uint32_t chipid) :
         _name(name),
@@ -65,6 +65,9 @@ Emulator::Emulator(std::string name, std::size_t flash_size, std::uint32_t chipi
         _flash(nullptr),
         _flash_size(flash_size),
         _chipid(chipid) {
+    if (!list) {
+        list = new std::vector<Emulator *>();
+    }
     list->push_back(this);
 }
 
