@@ -2,8 +2,11 @@ CXXFLAGS	:=	-Wall -Wextra -pedantic -std=c++14 \
 				-Wno-unused-result -Wno-unused-parameter \
 				-O3 -g \
 				-Ilibncgc/include -DNCGC_PLATFORM_TEST \
-				-fsanitize=undefined \
 				$(CXXFLAGS)
+
+ifdef UBSAN
+CXXFLAGS	+=	-fsanitize=undefined
+endif
 
 LDFLAGS		:=	-Llibncgc/out/test -lncgc
 
